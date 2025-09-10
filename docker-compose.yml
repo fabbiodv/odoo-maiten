@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    user: root
+    environment:
+      - POSTGRES_DB=maiten_db
+      - POSTGRES_PASSWORD=/s6lGcTBHpzLxcJB0j3DxKNm1raTjnZVf4Gw/UvU09w=
+      - POSTGRES_USER=maiten
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - odoo-db-data:/var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    networks:
+      - odoo-network
+
+  odoo:
+    build: .
+    user: root
+    depends_on:
+      - db
+    ports:
+      - "8069:8069"
+    environment:
+      - HOST=db
+      - USER=maiten
+      - PASSWORD=/s6lGcTBHpzLxcJB0j3DxKNm1raTjnZVf4Gw/UvU09w=
+    volumes:
+      - odoo-web-data:/var/lib/odoo
+      - ./config:/etc/odoo
+      - ./addons:/mnt/extra-addons
+    restart: unless-stopped
+    networks:
+      - odoo-network
+
+volumes:
+  odoo-web-data:
+  odoo-db-data:
+
+networks:
+  odoo-network:
+    driver: bridge
