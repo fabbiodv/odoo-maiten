@@ -3483,6 +3483,10 @@ class AccountMove(models.Model):
         '''
         self.ensure_one()
 
+        # No cash basis journal entry should be created for an account move in a bank or cash journal
+        if self.journal_id.type in ('bank', 'cash'):
+            return None
+
         values = {
             'move': self,
             'to_process_lines': [],
@@ -4588,7 +4592,7 @@ class AccountMove(models.Model):
             biggest_base_line['balance'] += delta_balance
 
         else:
-            grouping_dict = {'account_id': cash_discount_account.id}
+            grouping_dict = {'account_id': cash_discount_account.id, 'partner_id': payment_term_line.partner_id.id}
 
             res['term_lines'][payment_term_line][frozendict(grouping_dict)] = {
                 'name': _("Early Payment Discount"),
@@ -5313,7 +5317,8 @@ class AccountMove(models.Model):
 
     def action_print_pdf(self):
         self.ensure_one()
-        report_action = self.env.ref('account.account_invoices').report_action(self.id, config=False)
+        invoice_template = self.env['account.move.send']._get_default_pdf_report_id(self)
+        report_action = invoice_template.report_action(self.id, config=False)
         return self._get_action_with_base_document_layout_configurator(report_action)
 
     def preview_invoice(self):

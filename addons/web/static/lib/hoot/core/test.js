@@ -36,7 +36,8 @@ const SHARED_RESULTS = $freeze([]);
 export function testError({ name, parent }, ...message) {
     const parentString = parent ? ` (in suite ${stringify(parent.name)})` : "";
     return new HootError(
-        `error while registering test ${stringify(name)}${parentString}: ${message.join("\n")}`
+        `error while registering test ${stringify(name)}${parentString}: ${message.join("\n")}`,
+        { level: "critical" }
     );
 }
 
